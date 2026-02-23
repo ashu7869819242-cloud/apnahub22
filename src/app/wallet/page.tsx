@@ -217,7 +217,7 @@ export default function WalletPage() {
                                 value={topUpAmount}
                                 onChange={(e) => setTopUpAmount(e.target.value)}
                                 placeholder="Enter custom amount"
-                                className="input-field pl-8"
+                                className="input-field pl-10"
                                 disabled={processing}
                             />
                         </div>
@@ -303,7 +303,7 @@ export default function WalletPage() {
                                     value={transferAmount}
                                     onChange={(e) => setTransferAmount(e.target.value)}
                                     placeholder="Enter amount"
-                                    className="input-field pl-8"
+                                    className="input-field pl-10"
                                     min={1}
                                     max={5000}
                                 />

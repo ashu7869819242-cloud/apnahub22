@@ -11,13 +11,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { getAuthenticatedUser } from "@/lib/user-auth";
-import { FieldValue } from "firebase-admin/firestore";
-import { v4 as uuidv4 } from "uuid";
-
-// SECURITY: Generate collision-resistant order ID (replaces 6-digit random)
-function generateOrderId(): string {
-    return `ORD-${uuidv4().slice(0, 8).toUpperCase()}`;
-}
+import { generateOrderId } from "@/lib/orderIdUtils";
+import { FieldValue, DocumentSnapshot } from "firebase-admin/firestore";
 
 // GET /api/orders?userId=xxx — Fetch user's orders
 export async function GET(req: NextRequest) {
@@ -103,28 +98,47 @@ export async function POST(req: NextRequest) {
             }
         }
         await adminDb.runTransaction(async (transaction) => {
-            // 1. Check wallet balance
+            // 1. READ PHASE: Fetch all required data first
+
+            // 1.1 Fetch user doc
             const userRef = adminDb.collection("users").doc(userId);
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists) throw new Error("User not found");
 
+            // 1.2 Fetch all menu items in parallel (within the transaction)
+            const itemSnapshots: { item: any, snapshot: DocumentSnapshot }[] = [];
+            for (const item of items) {
+                const itemRef = adminDb.collection("menuItems").doc(item.id);
+                const itemDoc = await transaction.get(itemRef);
+                itemSnapshots.push({ item, snapshot: itemDoc });
+            }
+
+            // 2. VALIDATION PHASE
+
+            // 2.1 Check wallet balance
             const walletBalance = userDoc.data()?.walletBalance || 0;
             if (walletBalance < total) {
                 throw new Error("Insufficient wallet balance");
             }
 
-            // 2. Check and update menu item quantities
-            for (const item of items) {
-                const itemRef = adminDb.collection("menuItems").doc(item.id);
-                const itemDoc = await transaction.get(itemRef);
-                if (!itemDoc.exists) throw new Error(`Item ${item.name} no longer exists`);
+            // 2.2 Check menu item quantities
+            for (const { item, snapshot } of itemSnapshots) {
+                if (!snapshot.exists) throw new Error(`Item ${item.name} no longer exists`);
 
-                const currentQty = itemDoc.data()?.quantity || 0;
+                const currentQty = snapshot.data()?.quantity || 0;
                 if (currentQty < item.quantity) {
                     throw new Error(`${item.name} only has ${currentQty} left`);
                 }
+            }
 
+            // 3. WRITE PHASE: All updates happen after all reads/validations
+
+            // 3.1 Update menu item quantities
+            for (const { item, snapshot } of itemSnapshots) {
+                const itemRef = adminDb.collection("menuItems").doc(item.id);
+                const currentQty = snapshot.data()?.quantity || 0;
                 const newQty = currentQty - item.quantity;
+
                 transaction.update(itemRef, {
                     quantity: newQty,
                     available: newQty > 0,
@@ -132,26 +146,29 @@ export async function POST(req: NextRequest) {
                 });
             }
 
-            // 3. Deduct wallet
+            // 3.2 Deduct wallet
             transaction.update(userRef, {
                 walletBalance: FieldValue.increment(-total),
             });
 
-            // 4. Create order document
+            // 3.3 Create order document
+            const userRollNumber = userDoc.data()?.rollNumber || "";
             const orderRef = adminDb.collection("orders").doc();
             transaction.set(orderRef, {
                 orderId,
                 userId,
                 userName: userName || "Unknown",
                 userEmail: userEmail || "Unknown",
+                userRollNumber,
                 items,
                 total,
+                paymentMode: "Wallet",
                 status: "pending",
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             });
 
-            // 5. Record wallet debit transaction
+            // 3.4 Record wallet debit transaction
             const txnRef = adminDb.collection("walletTransactions").doc();
             transaction.set(txnRef, {
                 userId,

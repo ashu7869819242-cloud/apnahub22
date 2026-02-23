@@ -48,8 +48,10 @@ export interface Order {
     userId: string;
     userName: string;
     userEmail: string;
+    userRollNumber?: string;
     items: OrderItem[];
     total: number;
+    paymentMode?: string;
     status: "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled";
     prepTime?: number;
     estimatedReadyAt?: string;

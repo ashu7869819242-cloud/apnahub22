@@ -12,7 +12,7 @@ import { chatWithFallback, ChatMessage } from "@/lib/llm";
 import { getAuthenticatedUser } from "@/lib/user-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { adminDb } from "@/lib/firebase-admin";
-import { v4 as uuidv4 } from "uuid";
+import { generateOrderId } from "@/lib/orderIdUtils";
 
 export async function POST(req: NextRequest) {
     // SECURITY: Rate limit chat requests (20 per minute)
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
     try {
         const { messages, cart, userProfile, action } = await req.json();
 
-        // SECURITY: UUID-based order ID (replaces 6-digit collision-prone ID)
-        const generateOrderId = () => `ORD-${uuidv4().slice(0, 8).toUpperCase()}`;
+        // SECURITY: SAITM-format order ID (replaces UUID-based ID)
+        const generateId = () => generateOrderId();
 
         // Fetch canteen status for AI context
         let canteenIsOpen = true;
@@ -148,7 +148,7 @@ Yeh raha aapka order summary 👇
 🍔 Burger ×2
 ☕ Chai ×1
 Total: ₹80
-Order ID: 482913
+Order ID: SAITM4F7X
 
 Confirm karein?"
 
@@ -237,7 +237,7 @@ Never go outside canteen domain.`;
         systemPrompt += canteenStatusBlock;
 
         if (action === "place_order" && cart && cart.length > 0 && userProfile) {
-            const orderId = generateOrderId();
+            const orderId = generateId();
             const cartSummary = cart
                 .map((item: { name: string; quantity: number; price: number }) => `• ${item.name} x${item.quantity} — ₹${item.price * item.quantity}`)
                 .join("\n");
@@ -284,6 +284,72 @@ Keep it concise and fun with emojis!`;
             content: m.content,
         }));
 
+        // ── FAQ check: match the last user message against static FAQs ──
+        const lastUserMsg = chatMessages.filter((m) => m.role === "user").pop();
+        if (lastUserMsg) {
+            const { matchFaq } = await import("@/lib/faq");
+            const faqResult = matchFaq(lastUserMsg.content);
+
+            if (faqResult.matched) {
+                // Static FAQ — return answer directly
+                if (faqResult.answer) {
+                    return NextResponse.json({ message: faqResult.answer, provider: "faq" });
+                }
+
+                // Dynamic FAQ — fetch menu data and build response
+                if (faqResult.dynamic === "fastest_items") {
+                    try {
+                        const menuSnap = await adminDb.collection("menuItems")
+                            .where("available", "==", true)
+                            .orderBy("preparationTime", "asc")
+                            .limit(5)
+                            .get();
+                        const items = menuSnap.docs.map((d) => d.data());
+                        if (items.length === 0) {
+                            return NextResponse.json({ message: "Abhi koi fast item available nahi hai 😔", provider: "faq" });
+                        }
+                        const list = items
+                            .map((it) => `• ${it.name} — ₹${it.price} (${it.preparationTime} min)`)
+                            .join("\n");
+                        return NextResponse.json({
+                            message: `Yeh sabse jaldi milne wale items hain 🚀\n\n${list}\n\nOrder karna hai toh cart mein add karo!`,
+                            provider: "faq",
+                        });
+                    } catch (e) {
+                        console.error("Dynamic FAQ (fastest) error:", e);
+                    }
+                }
+
+                if (faqResult.dynamic === "combo_suggestion") {
+                    try {
+                        const menuSnap = await adminDb.collection("menuItems")
+                            .where("available", "==", true)
+                            .orderBy("preparationTime", "asc")
+                            .limit(10)
+                            .get();
+                        const items = menuSnap.docs.map((d) => d.data());
+                        if (items.length < 2) {
+                            return NextResponse.json({ message: "Abhi combo ke liye enough items available nahi hain 😔", provider: "faq" });
+                        }
+                        // Pick 2-3 items with low prep time for a combo
+                        const combo = items.slice(0, 3);
+                        const total = combo.reduce((s, it) => s + (it.price || 0), 0);
+                        const maxPrep = Math.max(...combo.map((it) => it.preparationTime || 0));
+                        const list = combo
+                            .map((it) => `• ${it.name} — ₹${it.price}`)
+                            .join("\n");
+                        return NextResponse.json({
+                            message: `Here's a quick combo suggestion 🍽️\n\n${list}\n\n💰 Total: ₹${total}\n⏱️ Ready in ~${maxPrep} min\n\nCart mein add karo aur order place karo!`,
+                            provider: "faq",
+                        });
+                    } catch (e) {
+                        console.error("Dynamic FAQ (combo) error:", e);
+                    }
+                }
+            }
+        }
+
+        // ── LLM fallback ──
         const { response, provider } = await chatWithFallback(chatMessages, systemPrompt);
 
         return NextResponse.json({ message: response, provider });

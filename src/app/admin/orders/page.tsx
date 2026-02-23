@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { useCountdown } from "@/hooks/useCountdown";
+import InvoiceModal from "@/components/InvoiceModal";
 
 interface OrderItem {
     name: string;
@@ -18,8 +19,10 @@ interface AdminOrder {
     orderId: string;
     userName: string;
     userEmail: string;
+    userRollNumber?: string;
     items: OrderItem[];
     total: number;
+    paymentMode?: string;
     status: string;
     prepTime?: number;
     estimatedReadyAt?: string;
@@ -56,6 +59,7 @@ export default function AdminOrdersPage() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
     const [customPrepTimes, setCustomPrepTimes] = useState<Record<string, string>>({});
+    const [invoiceOrder, setInvoiceOrder] = useState<AdminOrder | null>(null);
 
     // Real-time subscription
     useEffect(() => {
@@ -263,6 +267,14 @@ export default function AdminOrdersPage() {
                                                     ✅ Mark Ready
                                                 </button>
                                             )}
+
+                                            {/* Print Invoice */}
+                                            <button
+                                                onClick={() => setInvoiceOrder(order)}
+                                                className="px-4 py-2 rounded-xl text-sm font-bold bg-campus-500 text-white hover:bg-campus-600 transition-all"
+                                            >
+                                                🖨️ Print Invoice
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -271,6 +283,11 @@ export default function AdminOrdersPage() {
                     )}
                 </div>
             </div>
+
+            {/* Invoice Modal */}
+            {invoiceOrder && (
+                <InvoiceModal order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />
+            )}
         </AdminGuard>
     );
 }
