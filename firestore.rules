@@ -66,6 +66,22 @@ service cloud.firestore {
       allow write: if false; // Server-side only via Admin SDK
     }
 
+    // ─── Auto Orders ────────────────────────────────
+    // Read: only the authenticated user can read their own auto orders
+    // Write: DENY — managed via /api/auto-orders (Admin SDK)
+    match /autoOrders/{autoOrderId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false; // Server-side only via Admin SDK
+    }
+
+    // ─── Auto Order Executions ──────────────────────
+    // Read: only the authenticated user can read their own execution logs
+    // Write: DENY — managed via /api/auto-orders/execute (Admin SDK)
+    match /autoOrderExecutions/{execId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false; // Server-side only via Admin SDK
+    }
+
     // ─── Catch-all ──────────────────────────────────
     // Deny everything else by default
     match /{document=**} {

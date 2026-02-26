@@ -100,3 +100,40 @@ export interface ChatMessage {
     role: "user" | "assistant" | "system";
     content: string;
 }
+
+// ─── Auto Recurring Orders ──────────────────────
+
+export type DayOfWeek = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+export type AutoOrderFrequency = "daily" | "weekdays" | "custom";
+export type AutoOrderStatus = "active" | "paused";
+
+export interface AutoOrder {
+    id: string;
+    userId: string;
+    itemId: string;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+    time: string;                  // "HH:MM" 24-hour format
+    frequency: AutoOrderFrequency;
+    customDays?: DayOfWeek[];      // only when frequency === "custom"
+    status: AutoOrderStatus;
+    lastExecutedAt?: string;       // ISO string — duplicate guard
+    lastFailedAt?: string;
+    lastFailureReason?: string;
+    totalExecutions: number;
+    totalFailures: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AutoOrderExecution {
+    id: string;
+    autoOrderId: string;
+    userId: string;
+    orderId?: string;
+    success: boolean;
+    failureReason?: string;
+    amountDeducted?: number;
+    executedAt: string;
+}
