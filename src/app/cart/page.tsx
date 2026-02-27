@@ -82,13 +82,22 @@ export default function CartPage() {
                                 {/* Item Details */}
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-zayko-700 truncate">{item.name}</h3>
-                                    <p className="text-sm text-gray-500">₹{item.price} each</p>
+                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {item.selectedOptions.map((opt, idx) => (
+                                                <span key={idx} className="text-[10px] bg-zayko-100 text-zayko-600 px-1.5 py-0.5 rounded-md border border-zayko-200">
+                                                    {opt.optionName} {opt.price > 0 && `(+₹${opt.price})`}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="text-sm text-gray-500 mt-1">₹{item.price} each</p>
                                 </div>
 
                                 {/* Quantity Controls */}
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedOptions)}
                                         className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-600 transition-colors"
                                     >
                                         −
@@ -97,7 +106,7 @@ export default function CartPage() {
                                         {item.quantity}
                                     </span>
                                     <button
-                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedOptions)}
                                         disabled={item.quantity >= item.maxQuantity}
                                         className="w-8 h-8 rounded-lg bg-zayko-500 hover:bg-zayko-600 text-white flex items-center justify-center font-bold transition-colors disabled:opacity-50"
                                     >
@@ -109,7 +118,7 @@ export default function CartPage() {
                                 <div className="text-right flex-shrink-0">
                                     <p className="font-bold text-teal-600">₹{item.price * item.quantity}</p>
                                     <button
-                                        onClick={() => { removeItem(item.id); toast.success("Removed from cart"); }}
+                                        onClick={() => { removeItem(item.id, item.selectedOptions); toast.success("Removed from cart"); }}
                                         className="text-xs text-red-400 hover:text-red-600 mt-1"
                                     >
                                         Remove

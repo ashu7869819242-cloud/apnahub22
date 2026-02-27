@@ -10,29 +10,12 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import JarvisChat from "@/components/JarvisChat";
 
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  available: boolean;
-  quantity: number;
-  preparationTime?: number;
-  image?: string;
-  description?: string;
-}
+import { MenuItem, CategoryDoc } from "@/types";
 
 interface CanteenConfig {
   isOpen: boolean;
   startTime: string;
   endTime: string;
-}
-
-interface CategoryDoc {
-  id: string;
-  name: string;
-  slug: string;
-  order: number;
 }
 
 export default function MenuPage() {
@@ -43,6 +26,7 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [menuLoading, setMenuLoading] = useState(true);
+  const [showUnavailable, setShowUnavailable] = useState(true);
   const [canteenConfig, setCanteenConfig] = useState<CanteenConfig | null>(null);
   const [categories, setCategories] = useState<CategoryDoc[]>([]);
 
@@ -99,6 +83,7 @@ export default function MenuPage() {
   const minutesUntilClose = getMinutesUntilClose();
   const isCanteenOpen = canteenConfig?.isOpen !== false;
 
+
   const filteredItems = menuItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = category === "all" || item.category === category;
@@ -107,8 +92,20 @@ export default function MenuPage() {
       || minutesUntilClose === null
       || minutesUntilClose === 0
       || item.preparationTime <= minutesUntilClose;
-    return matchesSearch && matchesCategory && canPrepare;
-  });
+
+    const matchesAvailability = showUnavailable ? true : (item.available && item.quantity > 0);
+
+    return matchesSearch && matchesCategory && canPrepare && matchesAvailability;
+  })
+    .sort((a, b) => {
+      // Sort by availability first
+      const aAvailable = a.available && a.quantity > 0;
+      const bAvailable = b.available && b.quantity > 0;
+      if (aAvailable !== bAvailable) {
+        return aAvailable ? -1 : 1;
+      }
+      return 0;
+    });
 
   const availableCount = menuItems.filter((i) => i.available).length;
 
@@ -229,6 +226,20 @@ export default function MenuPage() {
             ))}
           </motion.div>
         </div>
+      </div>
+
+      {/* ─── Availability Toggle ─── */}
+      <div className="page-container mt-6 flex justify-end">
+        <label className="relative inline-flex items-center cursor-pointer group">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={showUnavailable}
+            onChange={() => setShowUnavailable(!showUnavailable)}
+          />
+          <div className="w-11 h-6 bg-zayko-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-500 shadow-inner"></div>
+          <span className="ms-3 text-sm font-medium text-zayko-300 group-hover:text-gold-400 transition-colors">Show unavailable items</span>
+        </label>
       </div>
 
       {/* ─── Menu Grid ─── */}

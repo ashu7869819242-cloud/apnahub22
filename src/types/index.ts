@@ -20,6 +20,20 @@ export interface UserProfile {
 
 // ─── Menu ───────────────────────────────────────
 
+export interface MenuItemOption {
+    id: string;
+    name: string;
+    price: number;
+}
+
+export interface MenuItemCustomization {
+    id: string;
+    title: string;
+    type: "single" | "multiple";
+    required: boolean;
+    options: MenuItemOption[];
+}
+
 export interface MenuItem {
     id: string;
     name: string;
@@ -30,6 +44,7 @@ export interface MenuItem {
     preparationTime: number; // minutes
     description?: string;
     image?: string;
+    customizations?: MenuItemCustomization[];
     createdAt?: string;
     updatedAt?: string;
 }
@@ -45,15 +60,41 @@ export interface Category {
     updatedAt: string;
 }
 
+export interface CategoryDoc {
+    id: string;
+    name: string;
+    slug: string;
+    order: number;
+}
+
 // ─── Orders ─────────────────────────────────────
 
-export interface OrderItem {
+export interface SelectedOption {
+    customizationId: string;
+    customizationTitle: string;
+    optionId: string;
+    optionName: string;
+    price: number;
+}
+
+export interface CartItem {
     id: string;
     name: string;
     price: number;
     quantity: number;
+    maxQuantity: number;
+    category: string;
+    image?: string;
+    selectedOptions?: SelectedOption[];
 }
 
+export interface OrderItem {
+    id: string;
+    name: string;
+    price: number; // base price + options
+    quantity: number;
+    selectedOptions?: SelectedOption[];
+}
 export interface Order {
     id: string;
     orderId: string;

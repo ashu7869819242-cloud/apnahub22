@@ -12,30 +12,12 @@ import MenuFilters, {
     type AvailabilityFilter,
 } from "@/components/admin/MenuFilters";
 
-// ─── Types ──────────────────────────────────────
-
-interface MenuItem {
-    id: string;
-    name: string;
-    price: number;
-    category: string;
-    available: boolean;
-    quantity: number;
-    preparationTime?: number;
-    description?: string;
-}
+import { MenuItem, MenuItemCustomization, MenuItemOption, CategoryDoc } from "@/types";
 
 interface ParsedMenuItem {
     name: string;
     price: number;
     category: string;
-}
-
-interface CategoryDoc {
-    id: string;
-    name: string;
-    slug: string;
-    order: number;
 }
 
 // ─── Component ──────────────────────────────────
@@ -64,6 +46,7 @@ export default function AdminMenuPage() {
         description: "",
         available: true,
         preparationTime: "",
+        customizations: [] as MenuItemCustomization[],
     });
     const [saving, setSaving] = useState(false);
 
@@ -157,6 +140,7 @@ export default function AdminMenuPage() {
             description: "",
             available: true,
             preparationTime: "",
+            customizations: [],
         });
         setEditItem(null);
         setShowForm(false);
@@ -174,6 +158,7 @@ export default function AdminMenuPage() {
             preparationTime: item.preparationTime
                 ? String(item.preparationTime)
                 : "",
+            customizations: item.customizations || [],
         });
         setShowForm(true);
     };
@@ -196,8 +181,7 @@ export default function AdminMenuPage() {
                         price: Number(form.price),
                         category: form.category,
                         quantity: Number(form.quantity),
-                        description: form.description,
-                        available: form.available,
+                        customizations: form.customizations,
                         preparationTime: form.preparationTime
                             ? Number(form.preparationTime)
                             : 0,
@@ -215,6 +199,7 @@ export default function AdminMenuPage() {
                         quantity: Number(form.quantity),
                         description: form.description,
                         available: form.available,
+                        customizations: form.customizations,
                         preparationTime: form.preparationTime
                             ? Number(form.preparationTime)
                             : 0,
@@ -309,6 +294,54 @@ export default function AdminMenuPage() {
     ) => {
         if (e.key === "Enter") saveQuantity(item);
         if (e.key === "Escape") setEditingQuantity(null);
+    };
+
+    // ─── Customization Helpers ───────────────────
+
+    const addCustomization = () => {
+        const newCust: MenuItemCustomization = {
+            id: Math.random().toString(36).substr(2, 9),
+            title: "",
+            type: "single",
+            required: false,
+            options: [],
+        };
+        setForm({ ...form, customizations: [...form.customizations, newCust] });
+    };
+
+    const removeCustomization = (index: number) => {
+        const updated = [...form.customizations];
+        updated.splice(index, 1);
+        setForm({ ...form, customizations: updated });
+    };
+
+    const updateCustomization = (index: number, data: Partial<MenuItemCustomization>) => {
+        const updated = [...form.customizations];
+        updated[index] = { ...updated[index], ...data };
+        setForm({ ...form, customizations: updated });
+    };
+
+    const addOption = (custIndex: number) => {
+        const newOption: MenuItemOption = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: "",
+            price: 0,
+        };
+        const updated = [...form.customizations];
+        updated[custIndex].options.push(newOption);
+        setForm({ ...form, customizations: updated });
+    };
+
+    const removeOption = (custIndex: number, optIndex: number) => {
+        const updated = [...form.customizations];
+        updated[custIndex].options.splice(optIndex, 1);
+        setForm({ ...form, customizations: updated });
+    };
+
+    const updateOption = (custIndex: number, optIndex: number, data: Partial<MenuItemOption>) => {
+        const updated = [...form.customizations];
+        updated[custIndex].options[optIndex] = { ...updated[custIndex].options[optIndex], ...data };
+        setForm({ ...form, customizations: updated });
     };
 
     // ─── AI Upload handlers ───────────────────────
@@ -471,7 +504,96 @@ export default function AdminMenuPage() {
                                         rows={2}
                                         className="w-full px-4 py-3 rounded-xl bg-zayko-700 border border-zayko-600 text-white placeholder:text-zayko-500 focus:ring-2 focus:ring-gold-400 focus:outline-none resize-none"
                                     />
-                                    <label className="flex items-center gap-2 text-zayko-300 text-sm cursor-pointer">
+
+                                    {/* Customizations Section */}
+                                    <div className="space-y-3 pt-2">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-bold text-zayko-300 uppercase tracking-wider">Customizations</h4>
+                                            <button
+                                                type="button"
+                                                onClick={addCustomization}
+                                                className="text-xs bg-gold-400/10 text-gold-400 px-2 py-1 rounded-lg hover:bg-gold-400/20 transition-all"
+                                            >
+                                                + Add Section
+                                            </button>
+                                        </div>
+
+                                        {form.customizations.map((cust, cIdx) => (
+                                            <div key={cust.id} className="p-3 bg-zayko-900/50 border border-zayko-600 rounded-xl space-y-3">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={cust.title}
+                                                        onChange={(e) => updateCustomization(cIdx, { title: e.target.value })}
+                                                        placeholder="e.g. Extra Toppings"
+                                                        className="flex-1 bg-zayko-800 border-none rounded-lg px-3 py-2 text-xs text-white placeholder:text-zayko-500 focus:ring-1 focus:ring-gold-400"
+                                                    />
+                                                    <select
+                                                        value={cust.type}
+                                                        onChange={(e) => updateCustomization(cIdx, { type: e.target.value as "single" | "multiple" })}
+                                                        className="bg-zayko-800 border-none rounded-lg px-2 py-2 text-[10px] text-zayko-300 focus:ring-1 focus:ring-gold-400"
+                                                    >
+                                                        <option value="single">Single</option>
+                                                        <option value="multiple">Multiple</option>
+                                                    </select>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeCustomization(cIdx)}
+                                                        className="text-red-400 p-2 hover:bg-red-500/10 rounded-lg"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+
+                                                <label className="flex items-center gap-2 text-[10px] text-zayko-400">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={cust.required}
+                                                        onChange={(e) => updateCustomization(cIdx, { required: e.target.checked })}
+                                                        className="accent-gold-500"
+                                                    />
+                                                    Required
+                                                </label>
+
+                                                <div className="space-y-2 pl-2 border-l border-zayko-700">
+                                                    {cust.options.map((opt, oIdx) => (
+                                                        <div key={opt.id} className="flex gap-2 items-center">
+                                                            <input
+                                                                type="text"
+                                                                value={opt.name}
+                                                                onChange={(e) => updateOption(cIdx, oIdx, { name: e.target.value })}
+                                                                placeholder="Option name"
+                                                                className="flex-1 bg-zayko-800 border-none rounded-lg px-2 py-1.5 text-[10px] text-white placeholder:text-zayko-600 focus:ring-1 focus:ring-gold-400"
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                value={opt.price}
+                                                                onChange={(e) => updateOption(cIdx, oIdx, { price: Number(e.target.value) })}
+                                                                placeholder="₹"
+                                                                className="w-14 bg-zayko-800 border-none rounded-lg px-2 py-1.5 text-[10px] text-gold-400 placeholder:text-zayko-600 focus:ring-1 focus:ring-gold-400"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeOption(cIdx, oIdx)}
+                                                                className="text-zayko-500 hover:text-red-400"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => addOption(cIdx)}
+                                                        className="text-[10px] text-zayko-400 hover:text-gold-400 p-1 transition-colors"
+                                                    >
+                                                        + Add Option
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <label className="flex items-center gap-2 text-zayko-300 text-sm cursor-pointer border-t border-zayko-700 pt-3">
                                         <input
                                             type="checkbox"
                                             checked={form.available}

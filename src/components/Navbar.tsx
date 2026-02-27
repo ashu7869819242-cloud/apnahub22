@@ -70,7 +70,7 @@ export default function Navbar() {
                         )}
 
                         {user && profile && (
-                            <div className="hidden lg:flex items-center gap-3">
+                            <div className="hidden md:flex items-center gap-3">
                                 <div className="text-right">
                                     <p className="text-sm font-semibold text-white">{profile.name}</p>
                                     <p className="text-[10px] text-zayko-400">{profile.rollNumber}</p>
