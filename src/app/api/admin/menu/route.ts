@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 
+export const runtime = "nodejs";
+
 // SECURITY: Centralized auth check for all admin menu operations
 function requireAdmin(req: NextRequest): NextResponse | null {
     if (!verifyAdmin(req)) {

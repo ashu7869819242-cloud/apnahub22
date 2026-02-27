@@ -14,6 +14,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { adminDb } from "@/lib/firebase-admin";
 import { generateOrderId } from "@/lib/orderIdUtils";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
     // SECURITY: Rate limit chat requests (20 per minute)
     const rateLimitResponse = checkRateLimit(req, 20, 60_000);

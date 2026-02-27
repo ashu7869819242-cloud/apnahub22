@@ -18,6 +18,8 @@ interface BulkMenuItem {
     category: string;
 }
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
     // SECURITY: Admin-only endpoint
     if (!verifyAdmin(req)) {

@@ -14,6 +14,8 @@ import { getAuthenticatedUser } from "@/lib/user-auth";
 import { generateOrderId } from "@/lib/orderIdUtils";
 import { FieldValue, DocumentSnapshot } from "firebase-admin/firestore";
 
+export const runtime = "nodejs";
+
 // GET /api/orders?userId=xxx — Fetch user's orders
 export async function GET(req: NextRequest) {
     // SECURITY: Require Firebase ID token

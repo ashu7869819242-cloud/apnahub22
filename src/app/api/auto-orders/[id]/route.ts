@@ -10,6 +10,8 @@ import { adminDb } from "@/lib/firebase-admin";
 import { getAuthenticatedUser } from "@/lib/user-auth";
 import type { DayOfWeek, AutoOrderFrequency } from "@/types";
 
+export const runtime = "nodejs";
+
 const VALID_DAYS: DayOfWeek[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const VALID_FREQUENCIES: AutoOrderFrequency[] = ["daily", "weekdays", "custom"];
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;

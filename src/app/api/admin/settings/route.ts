@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { adminDb } from "@/lib/firebase-admin";
 
+export const runtime = "nodejs";
+
 const CONFIG_PATH = "settings/canteenConfig";
 
 const DEFAULT_CONFIG = {

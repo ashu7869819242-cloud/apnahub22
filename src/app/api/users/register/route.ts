@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import crypto from "crypto";
 
+export const runtime = "nodejs";
+
 /**
  * Generate a random 6-char uppercase alphanumeric code.
  * Uses crypto.randomBytes for secure randomness.

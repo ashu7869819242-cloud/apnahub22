@@ -11,6 +11,8 @@ import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
     // SECURITY: Require Firebase ID token
     const uid = await getAuthenticatedUser(req);

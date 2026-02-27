@@ -10,6 +10,8 @@ import { getAuthenticatedUser } from "@/lib/user-auth";
 import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
     const uid = await getAuthenticatedUser(req);
     if (!uid) {

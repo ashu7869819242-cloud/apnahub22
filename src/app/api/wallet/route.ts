@@ -16,6 +16,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { FieldValue } from "firebase-admin/firestore";
 
+export const runtime = "nodejs";
+
 // GET /api/wallet?userId=xxx — Fetch wallet balance + recent transactions
 export async function GET(req: NextRequest) {
     // SECURITY: Rate limit

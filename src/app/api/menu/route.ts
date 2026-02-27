@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 
+export const runtime = "nodejs";
+
 // GET /api/menu — Fetch all menu items (public)
 export async function GET() {
     try {

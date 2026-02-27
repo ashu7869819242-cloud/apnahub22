@@ -11,6 +11,8 @@ import { adminDb } from "@/lib/firebase-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { FieldValue } from "firebase-admin/firestore";
 
+export const runtime = "nodejs";
+
 // SECURITY: Centralized auth check for all admin orders operations
 function requireAdmin(req: NextRequest): NextResponse | null {
     if (!verifyAdmin(req)) {

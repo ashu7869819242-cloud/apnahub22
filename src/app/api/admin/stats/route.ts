@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 
+export const runtime = "nodejs";
+
 export async function GET(req: NextRequest) {
     // SECURITY: Require valid admin JWT
     if (!verifyAdmin(req)) {

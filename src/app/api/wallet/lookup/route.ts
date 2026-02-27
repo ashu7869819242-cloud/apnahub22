@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/user-auth";
 import { adminDb } from "@/lib/firebase-admin";
 
+export const runtime = "nodejs";
+
 export async function GET(req: NextRequest) {
     const uid = await getAuthenticatedUser(req);
     if (!uid) {
