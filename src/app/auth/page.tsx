@@ -10,7 +10,7 @@ import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-type Step = "login" | "profile" | "setup-pin";
+type Step = "login" | "profile";
 
 export default function AuthPage() {
     const { user, loading } = useAuth();
@@ -18,8 +18,6 @@ export default function AuthPage() {
     const [step, setStep] = useState<Step>("login");
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
-    const [pin, setPin] = useState("");
-    const [confirmPin, setConfirmPin] = useState("");
     const [error, setError] = useState("");
     const [sending, setSending] = useState(false);
 
@@ -28,12 +26,7 @@ export default function AuthPage() {
             const checkProfile = async () => {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    if (!data.pinHash) {
-                        setStep("setup-pin");
-                    } else {
-                        router.push("/");
-                    }
+                    router.push("/");
                 } else {
                     setStep("profile");
                 }
@@ -52,12 +45,7 @@ export default function AuthPage() {
 
             const userDoc = await getDoc(doc(db, "users", uid));
             if (userDoc.exists()) {
-                const data = userDoc.data();
-                if (!data.pinHash) {
-                    setStep("setup-pin");
-                } else {
-                    router.push("/");
-                }
+                router.push("/");
             } else {
                 setStep("profile");
             }
@@ -73,20 +61,8 @@ export default function AuthPage() {
 
     const saveProfile = async () => {
         setError("");
-        if (step === "profile") {
-            if (!name.trim() || phone.length !== 10) {
-                setError("Please fill Name and 10-digit Phone");
-                return;
-            }
-        }
-
-        if (pin.length !== 4) {
-            setError("PIN must be 4 digits");
-            return;
-        }
-
-        if (pin !== confirmPin) {
-            setError("PINs do not match!");
+        if (!name.trim() || phone.length !== 10) {
+            setError("Please fill Name and 10-digit Phone");
             return;
         }
 
@@ -105,7 +81,6 @@ export default function AuthPage() {
                 body: JSON.stringify({
                     name: name.trim(),
                     phone,
-                    pin,
                 }),
             });
 
@@ -200,34 +175,9 @@ export default function AuthPage() {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-1 block">Set PIN</label>
-                                        <input
-                                            type="password"
-                                            maxLength={4}
-                                            value={pin}
-                                            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                                            placeholder="● ● ● ●"
-                                            className="input-field text-center font-mono"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-1 block">Confirm PIN</label>
-                                        <input
-                                            type="password"
-                                            maxLength={4}
-                                            value={confirmPin}
-                                            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-                                            placeholder="● ● ● ●"
-                                            className="input-field text-center font-mono"
-                                        />
-                                    </div>
-                                </div>
-
                                 <button
                                     onClick={saveProfile}
-                                    disabled={sending || !name.trim() || phone.length !== 10 || pin.length !== 4 || confirmPin.length !== 4}
+                                    disabled={sending || !name.trim() || phone.length !== 10}
                                     className="btn-primary w-full mt-2"
                                 >
                                     {sending ? "Creating Account..." : "Complete Registration 🚀"}
@@ -236,46 +186,6 @@ export default function AuthPage() {
                         </>
                     )}
 
-                    {step === "setup-pin" && (
-                        <>
-                            <h2 className="text-xl font-display font-bold text-zayko-700 mb-1">Set Your Security PIN 🔐</h2>
-                            <p className="text-gray-500 text-sm mb-6">Existing users must set a 4-digit security PIN</p>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700 mb-1 block">Create 4-Digit PIN</label>
-                                    <input
-                                        type="password"
-                                        maxLength={4}
-                                        value={pin}
-                                        onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                                        placeholder="● ● ● ●"
-                                        className="input-field text-center text-2xl font-mono tracking-[1em]"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700 mb-1 block">Confirm 4-Digit PIN</label>
-                                    <input
-                                        type="password"
-                                        maxLength={4}
-                                        value={confirmPin}
-                                        onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-                                        placeholder="● ● ● ●"
-                                        className="input-field text-center text-2xl font-mono tracking-[1em]"
-                                    />
-                                </div>
-
-                                <button
-                                    onClick={saveProfile}
-                                    disabled={sending || pin.length !== 4 || confirmPin.length !== 4}
-                                    className="btn-primary w-full mt-2"
-                                >
-                                    {sending ? "Saving PIN..." : "Save & Continue 🚀"}
-                                </button>
-                            </div>
-                        </>
-                    )}
 
                     {error && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm animate-scale-in">

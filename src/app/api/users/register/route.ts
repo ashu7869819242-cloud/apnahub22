@@ -64,38 +64,25 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { name, phone, pin } = await req.json();
+        const { name, phone } = await req.json();
 
         // Check if user already exists
         const userRef = adminDb.collection("users").doc(uid);
         const userDoc = await userRef.get();
 
-        // PIN validation (common for both new and existing)
-        if (!pin || !/^\d{4}$/.test(pin)) {
-            return NextResponse.json({ error: "4-digit PIN is required" }, { status: 400 });
-        }
-
-        const pinHash = await bcrypt.hash(pin, 10);
 
         if (userDoc.exists) {
             const userData = userDoc.data();
             if (!userData) return NextResponse.json({ error: "User data missing" }, { status: 404 });
 
-            // If user exists, we only allow updating PIN if it's missing (migration case)
-            if (userData.pinHash) {
-                return NextResponse.json({ error: "PIN already set for this account" }, { status: 409 });
-            }
-
-            // Update existing user with PIN
+            // If user exists, we just update name/phone if missing
             await userRef.update({
-                pinHash,
-                // Optionally update name/phone if they were missing (from very old accounts)
                 ...(name && !userData.name ? { name: name.trim() } : {}),
                 ...(phone && !userData.phone ? { phone: phone.trim() } : {}),
                 updatedAt: new Date().toISOString()
             });
 
-            return NextResponse.json({ success: true, message: "PIN set successfully" });
+            return NextResponse.json({ success: true, message: "Profile updated successfully" });
         }
 
         // --- NEW USER REGISTRATION ---
@@ -116,7 +103,6 @@ export async function POST(req: NextRequest) {
             email: email || "",
             name: name.trim(),
             phone: phone.trim(),
-            pinHash,
             uniqueCode,
             role: "user",
             walletBalance: 0,
