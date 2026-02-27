@@ -59,13 +59,13 @@ export default function MenuCard({ id, name, price, category, available, quantit
                 {image ? (
                     <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 ) : (
-                    <div className="text-6xl opacity-40 group-hover:scale-110 transition-transform duration-500">
+                    <div className="text-6xl opacity-50 group-hover:scale-110 transition-transform duration-500">
                         {categoryEmoji}
                     </div>
                 )}
 
                 {/* Gradient overlay for text legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zayko-900/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220]/80 via-transparent to-transparent" />
 
                 {/* Category badge (top-left) */}
                 <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-zayko-500/80 text-zayko-100 backdrop-blur-md border border-white/10">
@@ -73,7 +73,7 @@ export default function MenuCard({ id, name, price, category, available, quantit
                 </span>
 
                 {/* Price badge (top-right) */}
-                <span className="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-sm font-bold bg-gold-500/90 text-zayko-900 shadow-lg">
+                <span className="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-sm text-price shadow-lg bg-zayko-900/60 backdrop-blur-md border border-gold-400/30">
                     ₹{price}
                 </span>
 
@@ -96,13 +96,13 @@ export default function MenuCard({ id, name, price, category, available, quantit
             {/* Content */}
             <div className="p-4 space-y-3">
                 {/* Name */}
-                <h3 className="font-display font-semibold text-lg text-white line-clamp-1 tracking-tight">
+                <h3 className="font-display font-bold text-[17px] text-white line-clamp-1 tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
                     {name}
                 </h3>
 
                 {/* Description */}
                 {description && (
-                    <p className="text-sm text-zayko-300 line-clamp-2 leading-relaxed">{description}</p>
+                    <p className="text-sm text-[#b0bec5] line-clamp-2 leading-relaxed">{description}</p>
                 )}
 
                 {/* Badges Row */}
@@ -120,7 +120,7 @@ export default function MenuCard({ id, name, price, category, available, quantit
                                 {quantity <= 3 ? `🔥 Only ${quantity} left!` : quantity <= 5 ? `⚠️ Only ${quantity} left!` : `✓ ${quantity} left`}
                             </span>
                             {preparationTime && preparationTime > 0 && (
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-zayko-700/50 text-zayko-300 border border-white/5">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#101c2e] text-[#94a3b8] border border-white/10">
                                     ⏱ ~{preparationTime} min
                                 </span>
                             )}

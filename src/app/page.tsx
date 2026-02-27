@@ -152,48 +152,23 @@ export default function MenuPage() {
         )}
       </AnimatePresence>
 
-      {/* ─── Sticky Frosted Glass Navbar ─── */}
-      <nav className="sticky top-0 z-50 glass-navbar">
-        <div className="page-container !py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">⚡</span>
-            <span className="font-display font-bold text-lg text-white tracking-tight group-hover:text-gold-400 transition-colors">
-              Zayko
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/orders"
-              className="px-3 py-2 text-sm text-zayko-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-            >
-              📋 Orders
-            </Link>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-              <span className="text-zayko-400 text-sm">Wallet:</span>
-              <span className="font-bold text-gold-400 text-sm">₹{profile?.walletBalance || 0}</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* ─── Hero Section (Radial Gradient) ─── */}
       <div className="gradient-primary relative overflow-hidden">
         {/* Decorative glow orbs */}
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-gold-400/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 right-10 w-60 h-60 bg-teal-400/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="page-container py-10 sm:py-14 relative z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="page-container py-6 sm:py-10 lg:py-14 relative z-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-display font-bold text-white tracking-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
                 Hey {profile?.name?.split(" ")[0] || "there"}! 👋
               </h1>
-              <p className="text-zayko-300 mt-2 text-lg">What are you craving today?</p>
+              <p className="text-[#b0bec5] mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg">What are you craving today?</p>
             </motion.div>
 
             <motion.div

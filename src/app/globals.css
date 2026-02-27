@@ -115,13 +115,28 @@
   --shadow-gold-glow: 0 0 20px rgba(212, 160, 23, 0.3);
 }
 
-/* ── Base styles (Dark Premium) ── */
+/* ── Base styles (Dark Premium — High Contrast) ── */
 :root {
-  --bg-primary: #050b14;
-  --bg-secondary: #0a1628;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.08);
+  --bg-primary: #0B1220;
+  --bg-secondary: #101c2e;
+  --bg-card: rgba(16, 28, 46, 0.85);
+  --text-primary: #f1f5f9;
+  /* WCAG AAA on dark bg */
+  --text-secondary: #b0bec5;
+  /* WCAG AA on dark bg  */
+  --text-muted: #7b8fa3;
+  /* captions / labels   */
+  --text-accent: #38bdf8;
+  /* cyan accent          */
+  --text-gold: #fcd34d;
+  /* gold for prices/numbers */
+  --text-success: #4ade80;
+  /* green badges         */
+  --text-warning: #fbbf24;
+  /* amber warnings       */
+  --text-danger: #f87171;
+  /* red errors           */
+  --border-color: rgba(255, 255, 255, 0.10);
 }
 
 body {
@@ -132,21 +147,101 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Typography Hierarchy ── */
+.text-h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.text-h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.02em;
+}
+
+.text-h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.text-body {
+  font-size: 0.875rem;
+  color: #b0bec5;
+  line-height: 1.6;
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  color: #7b8fa3;
+}
+
+/* Gradient text for prices */
+.text-price {
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.25));
+}
+
 /* ── Component classes ── */
 .glass-card {
-  background-color: rgba(15, 32, 53, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  background-color: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2);
   border-radius: 1.25rem;
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
   transform: translateY(-4px) scale(1.015);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Status Badges */
+.badge-active {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+}
+
+.badge-paused {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.badge-pending {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-weight: 600;
+}
+
+.badge-danger {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  font-weight: 600;
 }
 
 .glass-navbar {
