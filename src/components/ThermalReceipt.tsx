@@ -19,6 +19,7 @@ interface ReceiptOrder {
     orderId: string;
     userName: string;
     userEmail: string;
+    userPhone?: string;
     userRollNumber?: string;
     items: OrderItem[];
     total: number;
@@ -150,7 +151,7 @@ export default function ThermalReceipt({ order, onClose }: ThermalReceiptProps) 
                             Smart Campus Food Ordering
                         </div>
                         <div style={{ fontSize: "9px", color: "#999", marginTop: "1px" }}>
-                            SAITM Campus, Bhopal
+                            SAITM Campus, Gurgaon
                         </div>
                     </div>
 
@@ -166,6 +167,9 @@ export default function ThermalReceipt({ order, onClose }: ThermalReceiptProps) 
                             <span>{order.userName}</span>
                             <span>{timeStr}</span>
                         </div>
+                        {order.userPhone && (
+                            <div style={{ color: "#666" }}>📱 {order.userPhone}</div>
+                        )}
                         {order.userRollNumber && (
                             <div style={{ color: "#666" }}>Roll: {order.userRollNumber}</div>
                         )}

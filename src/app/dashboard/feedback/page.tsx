@@ -88,13 +88,13 @@ export default function UserFeedbackPage() {
     return (
         <div className="min-h-screen bg-zayko-900 pb-24">
             {/* Header */}
-            <div className="bg-zayko-800 border-b border-zayko-700 px-6 py-4">
-                <div className="max-w-3xl mx-auto flex items-center gap-3">
-                    <Link href="/" className="text-zayko-400 hover:text-white transition-colors">← Back</Link>
-                    <div className="w-10 h-10 rounded-xl bg-gold-500/20 flex items-center justify-center text-xl">⭐</div>
+            <div className="bg-zayko-800/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4 sm:px-6 sticky top-0 z-40">
+                <div className="max-w-3xl mx-auto flex items-center gap-4">
+                    <Link href="/" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs hover:bg-white/10 transition-all">←</Link>
+                    <div className="w-10 h-10 rounded-xl bg-gold-500/10 flex items-center justify-center text-xl shadow-lg shadow-gold-500/5">⭐</div>
                     <div>
-                        <h1 className="text-lg font-display font-bold text-white">Feedback</h1>
-                        <p className="text-xs text-zayko-400">Help us improve your experience</p>
+                        <h1 className="text-lg font-display font-bold text-white uppercase tracking-tight">Feedback</h1>
+                        <p className="text-[10px] text-zayko-400 font-bold tracking-widest uppercase">Improve Your Experience</p>
                     </div>
                 </div>
             </div>

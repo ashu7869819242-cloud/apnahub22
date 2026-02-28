@@ -8,86 +8,18 @@ import toast from "react-hot-toast";
 import { useCountdown } from "@/hooks/useCountdown";
 import { useOrderNotifications } from "@/hooks/useOrderNotifications";
 import type { Order } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 /* ─── Status Config ──────────────────────────────────────── */
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-    pending: { label: "Pending", color: "text-yellow-700", bg: "bg-yellow-100", icon: "⏳" },
-    confirmed: { label: "Confirmed", color: "text-blue-700", bg: "bg-blue-100", icon: "✅" },
-    preparing: { label: "Preparing", color: "text-orange-700", bg: "bg-orange-100", icon: "👨‍🍳" },
-    ready: { label: "Ready!", color: "text-emerald-700", bg: "bg-emerald-100", icon: "🎉" },
-    completed: { label: "Completed", color: "text-gray-600", bg: "bg-gray-100", icon: "📦" },
-    cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-100", icon: "✗" },
+    pending: { label: "Pending", color: "text-amber-400", bg: "bg-amber-400/10", icon: "⏳" },
+    confirmed: { label: "Confirmed", color: "text-blue-400", bg: "bg-blue-400/10", icon: "✅" },
+    preparing: { label: "Preparing", color: "text-orange-400", bg: "bg-orange-400/10", icon: "👨‍🍳" },
+    ready: { label: "Ready!", color: "text-emerald-400", bg: "bg-emerald-400/10", icon: "🎉" },
+    completed: { label: "Completed", color: "text-zayko-400", bg: "bg-white/5", icon: "📦" },
+    cancelled: { label: "Cancelled", color: "text-red-400", bg: "bg-red-400/10", icon: "✗" },
 };
-
-/* ─── Countdown Display Component ────────────────────────── */
-function OrderCountdown({ readyAt, status }: { readyAt?: string; status: string }) {
-    const { formatted, isExpired, totalSeconds } = useCountdown(readyAt);
-
-    if (status === "ready") {
-        return (
-            <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 ready-celebration">
-                <div className="flex items-center gap-2">
-                    <span className="text-2xl">🎉</span>
-                    <div>
-                        <p className="font-display font-bold text-emerald-700 text-sm">Your order is ready!</p>
-                        <p className="text-emerald-600 text-xs">Head to the counter for pickup</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (status === "completed") {
-        return (
-            <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
-                <div className="flex items-center gap-2">
-                    <span className="text-lg">📦</span>
-                    <p className="text-gray-600 text-sm font-medium">Order completed</p>
-                </div>
-            </div>
-        );
-    }
-
-    if ((status !== "preparing" && status !== "confirmed") || !readyAt) return null;
-
-    if (isExpired) {
-        return (
-            <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 animate-pulse">
-                <div className="flex items-center gap-2">
-                    <span className="text-lg">⏰</span>
-                    <p className="text-amber-700 text-sm font-semibold">Almost ready — any moment now!</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Progress percentage for the visual bar
-    const urgentThreshold = 60; // last 60 seconds = urgent
-    const isUrgent = totalSeconds <= urgentThreshold;
-
-    return (
-        <div className={`mt-3 p-3 rounded-xl border ${isUrgent ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"} countdown-container`}>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <span className={`text-lg ${isUrgent ? "countdown-pulse" : ""}`}>🕒</span>
-                    <div>
-                        <p className={`text-xs font-medium ${isUrgent ? "text-red-600" : "text-orange-600"}`}>
-                            Preparing your order
-                        </p>
-                        <p className={`font-display font-bold text-lg tabular-nums ${isUrgent ? "text-red-700 countdown-pulse" : "text-orange-700"}`}>
-                            {formatted} <span className="text-xs font-normal">remaining</span>
-                        </p>
-                    </div>
-                </div>
-                <div className="text-right">
-                    <p className="text-xs text-gray-400">
-                        Ready by {new Date(readyAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 /* ─── Main Orders Page ───────────────────────────────────── */
 export default function OrdersPage() {
@@ -106,37 +38,24 @@ export default function OrdersPage() {
         if (!loading && !user) router.push("/auth");
     }, [user, loading, router]);
 
-    // Real-time subscription for user's orders
     useEffect(() => {
         if (!user) return;
-
         const q = query(
             collection(db, "orders"),
             where("userId", "==", user.uid),
             orderBy("createdAt", "desc")
         );
-
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const orderList = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                })) as Order[];
-                setOrders(orderList);
-                setOrdersLoading(false);
-            },
-            (error) => {
-                console.error("Orders listener error:", error);
-                if (error.code === "failed-precondition") {
-                    toast.error("Firestore index required.");
-                } else {
-                    toast.error("Failed to load orders.");
-                }
-                setOrdersLoading(false);
-            }
-        );
-
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const orderList = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            })) as Order[];
+            setOrders(orderList);
+            setOrdersLoading(false);
+        }, (error) => {
+            console.error("Orders listener error:", error);
+            setOrdersLoading(false);
+        });
         return () => unsubscribe();
     }, [user]);
 
@@ -155,9 +74,8 @@ export default function OrdersPage() {
                     comment
                 })
             });
-
             if (res.ok) {
-                toast.success("Feedback submitted! Thanks! ❤️");
+                toast.success("Feedback submitted! ❤️");
                 setFeedbackOrder(null);
                 setRating(5);
                 setComment("");
@@ -171,13 +89,12 @@ export default function OrdersPage() {
         }
     };
 
-    // 🔔 Notification hook
     useOrderNotifications(orders);
 
     if (loading || ordersLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-zayko-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-zayko-900 flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -187,32 +104,37 @@ export default function OrdersPage() {
     const pastOrders = orders.filter((o) => !activeStatuses.includes(o.status));
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="page-container max-w-3xl">
-                <div className="mb-8 animate-fade-in pt-6">
-                    <h1 className="section-title">My Orders 📋</h1>
-                    <p className="text-gray-500 mt-1">{orders.length} order{orders.length !== 1 ? "s" : ""} placed</p>
+        <div className="min-h-screen bg-zayko-900 pb-28 md:pb-24">
+            {/* ─── Header ─── */}
+            <div className="bg-zayko-800/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4 sm:px-6 sticky top-0 z-40">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-display font-bold text-white">My Orders 📋</h1>
+                        <p className="text-xs text-zayko-400 mt-0.5">{orders.length} orders total</p>
+                    </div>
                 </div>
+            </div>
 
+            <div className="px-4 sm:px-6 max-w-3xl mx-auto py-6">
                 {orders.length === 0 ? (
-                    <div className="text-center py-20 animate-fade-in">
+                    <div className="text-center py-20 bg-white/[0.03] rounded-3xl border border-white/[0.05]">
                         <div className="text-6xl mb-4">📋</div>
-                        <h1 className="text-xl font-display font-bold text-gray-700 mb-2">No orders yet</h1>
-                        <p className="text-gray-500 mb-6">Your order history will appear here</p>
-                        <button onClick={() => router.push("/")} className="btn-primary">
-                            Browse Menu 🍽️
-                        </button>
+                        <h3 className="text-xl font-display font-bold text-white mb-2">No orders yet</h3>
+                        <p className="text-zayko-400 mb-6">Your hungry stomach is waiting...</p>
+                        <Link href="/" className="px-6 py-3 bg-gold-400 text-zayko-900 rounded-xl font-bold shadow-lg shadow-gold-400/20 active:scale-95 transition-all inline-block">
+                            Order Something 🍽️
+                        </Link>
                     </div>
                 ) : (
-                    <div className="space-y-8 pb-20">
+                    <div className="space-y-8">
                         {/* Active Orders */}
                         {activeOrders.length > 0 && (
                             <div>
-                                <h2 className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <h2 className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
                                     Active Orders
                                 </h2>
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     {activeOrders.map((order) => (
                                         <OrderCard key={order.id} order={order} />
                                     ))}
@@ -223,7 +145,7 @@ export default function OrdersPage() {
                         {/* Past Orders */}
                         {pastOrders.length > 0 && (
                             <div>
-                                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                <h2 className="text-xs font-bold text-zayko-500 uppercase tracking-widest mb-4">
                                     Past Orders
                                 </h2>
                                 <div className="space-y-4">
@@ -238,52 +160,60 @@ export default function OrdersPage() {
             </div>
 
             {/* Feedback Modal */}
-            {feedbackOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden animate-zoom-in">
-                        <div className="p-6">
-                            <h3 className="text-xl font-display font-bold text-gray-800 mb-2">Rate Order #{feedbackOrder.orderId}</h3>
-                            <p className="text-gray-500 text-sm mb-6">How was your experience with "Zayko"?</p>
+            <AnimatePresence>
+                {feedbackOrder && (
+                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+                        <motion.div
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="bg-zayko-800 rounded-t-3xl sm:rounded-3xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="p-6">
+                                <div className="w-12 h-1.5 bg-zayko-700 rounded-full mx-auto mb-6 sm:hidden" />
+                                <h3 className="text-xl font-display font-bold text-white mb-1">Rate Order #{feedbackOrder.orderId}</h3>
+                                <p className="text-zayko-400 text-sm mb-8">How was your food experience?</p>
 
-                            {/* Stars */}
-                            <div className="flex items-center justify-center gap-2 mb-8 text-4xl">
-                                {[1, 2, 3, 4, 5].map((star) => (
+                                <div className="flex items-center justify-center gap-3 mb-8 text-4xl">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            className={`transition-all active:scale-75 ${star <= rating ? "text-gold-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] scale-110" : "text-zayko-700"}`}
+                                        >
+                                            ★
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Tell us more about the taste... (optional)"
+                                    className="w-full h-32 p-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-zayko-600 focus:ring-2 focus:ring-gold-400/30 focus:border-gold-400/30 outline-none resize-none mb-6 transition-all"
+                                />
+
+                                <div className="flex gap-3 pb-safe">
                                     <button
-                                        key={star}
-                                        onClick={() => setRating(star)}
-                                        className={`transition-transform active:scale-90 ${star <= rating ? "text-gold-500" : "text-gray-200"}`}
+                                        onClick={() => setFeedbackOrder(null)}
+                                        className="flex-1 py-4 text-sm font-bold text-zayko-400 hover:text-white transition-colors"
                                     >
-                                        ★
+                                        Skip
                                     </button>
-                                ))}
+                                    <button
+                                        onClick={submitFeedback}
+                                        disabled={submitting}
+                                        className="flex-[2] py-4 bg-gold-400 text-zayko-900 font-display font-bold rounded-2xl hover:bg-gold-500 shadow-lg shadow-gold-400/10 transition-all disabled:opacity-50 active:scale-95"
+                                    >
+                                        {submitting ? "Sending..." : "Submit Review"}
+                                    </button>
+                                </div>
                             </div>
-
-                            <textarea
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                placeholder="Any comments? (optional)"
-                                className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-gold-400 outline-none resize-none mb-6"
-                            />
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setFeedbackOrder(null)}
-                                    className="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
-                                >
-                                    Skip
-                                </button>
-                                <button
-                                    onClick={submitFeedback}
-                                    disabled={submitting}
-                                    className="flex-[2] py-4 bg-gold-400 text-zayko-900 font-display font-bold rounded-2xl hover:bg-gold-500 transition-all disabled:opacity-50"
-                                >
-                                    {submitting ? "Sending..." : "Submit Review"}
-                                </button>
-                            </div>
-                        </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -291,56 +221,74 @@ export default function OrdersPage() {
 /* ─── Order Card Component ───────────────────────────────── */
 function OrderCard({ order, onReview }: { order: Order; onReview?: () => void }) {
     const st = statusConfig[order.status] || statusConfig.pending;
+    const { formatted, isExpired } = useCountdown(order.readyAt || order.estimatedReadyAt);
 
     return (
-        <div className={`glass-card overflow-hidden animate-slide-up ${order.status === "ready" ? "ring-2 ring-emerald-400 ring-offset-2" : ""}`}>
-            {/* Order Header */}
-            <div className="p-4 sm:p-5 border-b border-gray-50">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-display font-bold text-zayko-700">
-                                Order #{order.orderId}
-                            </h3>
-                            <span className={`badge ${st.bg} ${st.color}`}>
-                                {st.icon} {st.label}
+        <div className={`bg-zayko-800/40 border border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ${order.status === "ready" ? "ring-2 ring-emerald-400/50 scale-[1.01]" : ""}`}>
+            {/* Header */}
+            <div className="p-4 border-b border-white/[0.04]">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl">{st.icon}</span>
+                        <div>
+                            <h3 className="text-sm font-bold text-white leading-none mb-1">Order #{order.orderId}</h3>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${st.bg} ${st.color}`}>
+                                {st.label}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">
-                            {new Date(order.createdAt).toLocaleString()}
-                        </p>
                     </div>
-                    <span className="font-display font-bold text-lg text-teal-600">
-                        ₹{order.total}
-                    </span>
+                    <span className="font-display font-bold text-lg text-white">₹{order.total}</span>
                 </div>
 
-                {/* Countdown Timer / Ready / Completed Display */}
-                <OrderCountdown readyAt={order.readyAt || order.estimatedReadyAt} status={order.status} />
+                {/* Status-specific progress/countdown */}
+                {order.status === "ready" ? (
+                    <div className="p-3 rounded-xl bg-emerald-400/10 border border-emerald-400/20">
+                        <p className="text-emerald-400 text-xs font-bold flex items-center gap-1.5">
+                            <span className="animate-bounce">🍜</span> Your food is ready for pickup!
+                        </p>
+                    </div>
+                ) : (order.status === "preparing" || order.status === "confirmed") && (order.readyAt || order.estimatedReadyAt) ? (
+                    <div className="p-3 rounded-xl bg-orange-400/5 border border-white/[0.04]">
+                        <div className="flex justify-between items-center">
+                            <p className="text-[10px] text-zayko-400 uppercase font-bold tracking-tight">Estimated Prep Time</p>
+                            <span className={`text-sm font-bold tabular-nums ${isExpired ? "text-amber-400 animate-pulse" : "text-orange-400"}`}>
+                                {isExpired ? "Almost ready..." : formatted}
+                            </span>
+                        </div>
+                    </div>
+                ) : order.status === "completed" ? (
+                    <p className="text-[10px] text-zayko-500 italic px-1">Delivered on {new Date(order.createdAt).toLocaleDateString()}</p>
+                ) : null}
             </div>
 
-            {/* Order Items */}
-            <div className="p-4 sm:p-5 bg-gray-50/50">
-                {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-1 text-sm">
-                        <span className="text-gray-700">
-                            {item.name} × {item.quantity}
-                        </span>
-                        <span className="text-gray-500">₹{item.price * item.quantity}</span>
-                    </div>
-                ))}
+            {/* Items */}
+            <div className="px-4 py-3 bg-white/[0.02]">
+                <div className="space-y-1.5">
+                    {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-xs">
+                            <span className="text-zayko-300">
+                                <span className="font-bold text-white">{item.quantity}x</span> {item.name}
+                            </span>
+                            <span className="text-zayko-500">₹{item.price * item.quantity}</span>
+                        </div>
+                    ))}
+                </div>
 
-                {/* Feedback Button for Past Orders */}
                 {order.status === "completed" && onReview && (
                     <button
                         onClick={onReview}
-                        className="mt-4 w-full py-2.5 border-2 border-zayko-100 text-zayko-600 rounded-xl text-sm font-bold hover:bg-zayko-50 hover:border-zayko-200 transition-all flex items-center justify-center gap-2"
+                        className="mt-4 w-full py-2.5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                        ⭐ Review Order
+                        ⭐ Rate Your Food
                     </button>
                 )}
+            </div>
+
+            <div className="px-4 py-2 border-t border-white/[0.04]">
+                <p className="text-[10px] text-zayko-500 text-right">
+                    {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
             </div>
         </div>
     );
 }
-

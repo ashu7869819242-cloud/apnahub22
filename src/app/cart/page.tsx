@@ -5,21 +5,21 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartPage() {
     const { user, profile, loading } = useAuth();
     const { items, updateQuantity, removeItem, clearCart, total, itemCount } = useCart();
     const router = useRouter();
 
-    // FIX: Move redirect out of render body into useEffect
     useEffect(() => {
         if (!loading && !user) router.push("/auth");
     }, [user, loading, router]);
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-zayko-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-zayko-900 flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -32,7 +32,10 @@ export default function CartPage() {
             return;
         }
         if ((profile.walletBalance || 0) < total) {
-            toast.error("Insufficient wallet balance. Please top up your wallet first!");
+            toast.error("Insufficient wallet balance. Please top up your wallet first!", {
+                icon: "💰",
+                style: { background: "#1e3a5f", color: "#fff" }
+            });
             return;
         }
         // Navigate to chat with order intent
@@ -40,143 +43,180 @@ export default function CartPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="page-container max-w-3xl">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8 animate-fade-in">
+        <div className="min-h-screen bg-zayko-900 pb-36 md:pb-24">
+            {/* Header */}
+            <div className="bg-zayko-800/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4 sm:px-6 sticky top-0 z-40">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
                     <div>
-                        <h1 className="section-title">Your Cart 🛒</h1>
-                        <p className="text-gray-500 mt-1">
-                            {itemCount > 0 ? `${itemCount} item${itemCount > 1 ? "s" : ""} in your cart` : "Your cart is empty"}
+                        <h1 className="text-xl font-display font-bold text-white uppercase tracking-tight">Cart 🛒</h1>
+                        <p className="text-[10px] text-zayko-400 font-bold tracking-widest uppercase mt-0.5">
+                            {itemCount} {itemCount === 1 ? 'Item' : 'Items'} selected
                         </p>
                     </div>
                     {items.length > 0 && (
                         <button
                             onClick={() => { clearCart(); toast.success("Cart cleared"); }}
-                            className="text-sm text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-all"
+                            className="text-xs font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20 active:scale-95 transition-all"
                         >
-                            Clear All
+                            CLEAR ALL
                         </button>
                     )}
                 </div>
+            </div>
 
+            <div className="px-4 sm:px-6 max-w-3xl mx-auto py-6">
                 {items.length === 0 ? (
-                    <div className="text-center py-20 animate-fade-in">
+                    <div className="text-center py-20 bg-white/[0.03] rounded-3xl border border-white/[0.05]">
                         <div className="text-6xl mb-4">🛒</div>
-                        <h3 className="text-xl font-display font-bold text-gray-700 mb-2">Your cart is empty</h3>
-                        <p className="text-gray-500 mb-6">Browse the menu and add some delicious items!</p>
-                        <Link href="/" className="btn-primary inline-block">
+                        <h3 className="text-xl font-display font-bold text-white mb-2">Your cart is empty</h3>
+                        <p className="text-zayko-400 mb-8 max-w-[200px] mx-auto text-sm">Delicious food is just a few taps away!</p>
+                        <Link href="/" className="px-8 py-3 bg-gold-400 text-zayko-900 rounded-xl font-bold shadow-lg shadow-gold-400/20 active:scale-95 transition-all inline-block hover:bg-gold-500">
                             Browse Menu 🍽️
                         </Link>
                     </div>
                 ) : (
-                    <div className="space-y-4 animate-slide-up">
+                    <div className="space-y-4">
                         {/* Cart Items */}
-                        {items.map((item) => (
-                            <div key={item.id} className="glass-card p-4 sm:p-5 flex items-center gap-4">
-                                {/* Item Icon */}
-                                <div className="w-14 h-14 rounded-xl bg-zayko-50 flex items-center justify-center text-2xl flex-shrink-0">
-                                    {item.category === "beverages" ? "☕" : item.category === "snacks" ? "🍿" : item.category === "meals" ? "🍱" : "🍽️"}
-                                </div>
-
-                                {/* Item Details */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-zayko-700 truncate">{item.name}</h3>
-                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                            {item.selectedOptions.map((opt, idx) => (
-                                                <span key={idx} className="text-[10px] bg-zayko-100 text-zayko-600 px-1.5 py-0.5 rounded-md border border-zayko-200">
-                                                    {opt.optionName} {opt.price > 0 && `(+₹${opt.price})`}
+                        <div className="space-y-3">
+                            <AnimatePresence mode="popLayout">
+                                {items.map((item) => (
+                                    <motion.div
+                                        key={`${item.id}-${JSON.stringify(item.selectedOptions)}`}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                                        className="bg-zayko-800/40 border border-white/[0.06] p-4 rounded-2xl flex items-center gap-4 group transition-all hover:bg-zayko-800/60"
+                                    >
+                                        {/* Item Image/Icon */}
+                                        <div className="w-16 h-16 rounded-xl bg-white/[0.03] flex items-center justify-center text-3xl shrink-0 group-hover:scale-105 transition-transform overflow-hidden border border-white/[0.05]">
+                                            {item.image ? (
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="opacity-40">
+                                                    {item.category === "beverages" ? "☕" : item.category === "snacks" ? "🍿" : item.category === "meals" ? "🍱" : "🍽️"}
                                                 </span>
-                                            ))}
+                                            )}
                                         </div>
-                                    )}
-                                    <p className="text-sm text-gray-500 mt-1">₹{item.price} each</p>
-                                </div>
 
-                                {/* Quantity Controls */}
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedOptions)}
-                                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-600 transition-colors"
-                                    >
-                                        −
-                                    </button>
-                                    <span className="w-8 text-center font-semibold text-zayko-700">
-                                        {item.quantity}
-                                    </span>
-                                    <button
-                                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedOptions)}
-                                        disabled={item.quantity >= item.maxQuantity}
-                                        className="w-8 h-8 rounded-lg bg-zayko-500 hover:bg-zayko-600 text-white flex items-center justify-center font-bold transition-colors disabled:opacity-50"
-                                    >
-                                        +
-                                    </button>
-                                </div>
+                                        {/* Details */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-sm text-white truncate drop-shadow-sm">{item.name}</h3>
+                                            {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {item.selectedOptions.map((opt, idx) => (
+                                                        <span key={idx} className="text-[9px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded-md border border-purple-500/20 uppercase font-black tracking-tighter">
+                                                            {opt.optionName}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className="flex items-center justify-between mt-2">
+                                                <p className="text-sm font-bold text-gold-400">₹{item.price * item.quantity}</p>
 
-                                {/* Price & Remove */}
-                                <div className="text-right flex-shrink-0">
-                                    <p className="font-bold text-teal-600">₹{item.price * item.quantity}</p>
-                                    <button
-                                        onClick={() => { removeItem(item.id, item.selectedOptions); toast.success("Removed from cart"); }}
-                                        className="text-xs text-red-400 hover:text-red-600 mt-1"
-                                    >
-                                        Remove
-                                    </button>
+                                                {/* Quantity Controls */}
+                                                <div className="flex items-center bg-zayko-900 border border-white/[0.08] rounded-xl overflow-hidden shadow-inner">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedOptions)}
+                                                        className="w-8 h-8 flex items-center justify-center text-zayko-400 hover:text-white transition-colors text-lg"
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <span className="w-6 text-center text-xs font-bold text-white tabular-nums">
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedOptions)}
+                                                        disabled={item.quantity >= item.maxQuantity}
+                                                        className="w-8 h-8 flex items-center justify-center text-gold-400 hover:text-white transition-colors text-lg disabled:opacity-30"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Remove Icon */}
+                                        <button
+                                            onClick={() => { removeItem(item.id, item.selectedOptions); toast.success("Removed"); }}
+                                            className="p-2 text-zayko-600 hover:text-red-400 transition-colors active:scale-75 shrink-0"
+                                        >
+                                            <span className="text-lg">🗑️</span>
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Summary Section */}
+                        <div className="bg-zayko-800/20 border border-white/[0.04] p-6 rounded-3xl mt-4 space-y-4">
+                            <h3 className="font-display font-bold text-sm text-zayko-400 uppercase tracking-widest mb-2">Order Summary</h3>
+
+                            <div className="space-y-2.5">
+                                <div className="flex justify-between text-xs sm:text-sm">
+                                    <span className="text-zayko-500">Subtotal ({itemCount} items)</span>
+                                    <span className="text-white font-medium">₹{total}</span>
+                                </div>
+                                <div className="flex justify-between text-xs sm:text-sm">
+                                    <span className="text-zayko-500">Platform Fee</span>
+                                    <span className="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-md uppercase tracking-tighter text-[10px]">FREE ✨</span>
+                                </div>
+                                <div className="h-px bg-white/[0.04] my-2" />
+                                <div className="flex justify-between items-center">
+                                    <span className="font-display font-bold text-lg text-white">To Pay</span>
+                                    <span className="font-display font-bold text-3xl text-gold-400 tabular-nums">₹{total}</span>
                                 </div>
                             </div>
-                        ))}
 
-                        {/* Order Summary */}
-                        <div className="glass-card p-6 mt-6">
-                            <h3 className="font-display font-bold text-lg text-zayko-700 mb-4">Order Summary</h3>
-
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between text-gray-600">
-                                    <span>Subtotal ({itemCount} items)</span>
-                                    <span>₹{total}</span>
+                            {/* Wallet Info Badge */}
+                            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-full bg-gold-400/10 flex items-center justify-center text-sm">💰</span>
+                                    <div className="text-left">
+                                        <p className="text-[10px] text-zayko-500 font-bold uppercase tracking-widest leading-none mb-1">Wallet Balance</p>
+                                        <p className={`text-sm font-bold ${(profile?.walletBalance || 0) >= total ? "text-emerald-400" : "text-red-400"}`}>
+                                            ₹{profile?.walletBalance || 0}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
-                                    <span>Service Fee</span>
-                                    <span className="text-teal-600">Free ✨</span>
-                                </div>
-                                <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
-                                    <span className="font-display font-bold text-lg text-zayko-700">Total</span>
-                                    <span className="font-display font-bold text-2xl text-teal-600">₹{total}</span>
-                                </div>
+                                {(profile?.walletBalance || 0) < total && (
+                                    <Link href="/wallet" className="text-xs font-bold text-gold-400 bg-gold-400/10 px-3 py-1.5 rounded-xl border border-gold-400/20 active:scale-95">
+                                        ADD CASH
+                                    </Link>
+                                )}
                             </div>
-
-                            {/* Wallet Info */}
-                            <div className="mt-4 p-3 rounded-xl bg-zayko-50 flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span>💰</span>
-                                    <span className="text-zayko-600">Wallet Balance</span>
-                                </div>
-                                <span className={`font-bold ${(profile?.walletBalance || 0) >= total ? "text-teal-600" : "text-red-500"}`}>
-                                    ₹{profile?.walletBalance || 0}
-                                </span>
-                            </div>
-
-                            {(profile?.walletBalance || 0) < total && (
-                                <Link
-                                    href="/wallet"
-                                    className="block w-full text-center mt-3 text-sm text-zayko-500 hover:underline"
-                                >
-                                    ⚠️ Insufficient balance. Top up your wallet →
-                                </Link>
-                            )}
-
-                            <button
-                                onClick={handlePlaceOrder}
-                                disabled={(profile?.walletBalance || 0) < total}
-                                className="btn-primary w-full mt-4 py-4 text-lg"
-                            >
-                                Place Order via AI Assistant 🤖
-                            </button>
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* Sticky Bottom Actions (Mobile) */}
+            {items.length > 0 && (
+                <div className="fixed bottom-16 md:bottom-0 left-0 right-0 p-4 bg-zayko-900/80 backdrop-blur-xl border-t border-white/[0.06] z-40 md:static md:bg-transparent md:border-none md:p-0 md:mt-6">
+                    <div className="max-w-3xl mx-auto">
+                        <motion.button
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            onClick={handlePlaceOrder}
+                            disabled={(profile?.walletBalance || 0) < total}
+                            className="w-full flex items-center justify-between bg-gradient-to-r from-gold-500 to-gold-400 text-zayko-900 px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(251,191,36,0.3)] hover:shadow-[0_15px_50px_rgba(251,191,36,0.4)] transition-all font-display font-bold text-lg group active:scale-[0.98] disabled:from-zayko-700 disabled:to-zayko-700 disabled:text-zayko-500 disabled:shadow-none"
+                        >
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="text-[10px] text-zayko-950/60 uppercase tracking-widest mb-1 italic font-black">AI Powered Checkout</span>
+                                <span>Place Order</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span>₹{total}</span>
+                                <span className="text-2xl group-hover:translate-x-1 transition-transform">→</span>
+                            </div>
+                        </motion.button>
+
+                        {(profile?.walletBalance || 0) < total && (
+                            <p className="text-center text-[10px] text-red-400 font-bold mt-2 uppercase tracking-tight">Insufficient Balance. Please top up your wallet first.</p>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

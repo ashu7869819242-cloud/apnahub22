@@ -20,6 +20,7 @@ interface AdminOrder {
     orderId: string;
     userName: string;
     userEmail: string;
+    userPhone?: string;
     userRollNumber?: string;
     items: OrderItem[];
     total: number;

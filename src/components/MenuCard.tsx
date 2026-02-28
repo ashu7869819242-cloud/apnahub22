@@ -59,34 +59,25 @@ export default function MenuCard({ id, name, price, category, available, quantit
 
     return (
         <>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                whileHover={{ y: -6, scale: 1.02 }}
+            <div
                 onClick={() => !available && toast.error("Item currently unavailable")}
-                className={`menu-card glass-card overflow-hidden group cursor-pointer ${!available ? "opacity-60 grayscale-[0.3]" : ""}`}
+                className={`flex flex-col bg-zayko-800/60 border border-white/[0.06] rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 hover:-translate-y-1 ${!available ? "opacity-60 grayscale-[0.3]" : ""}`}
             >
-                {/* Image / Placeholder Section */}
-                <div className="relative h-40 sm:h-44 bg-gradient-to-br from-zayko-800 to-zayko-700 flex items-center justify-center overflow-hidden">
+                {/* Image Section — fixed aspect ratio */}
+                <div className="relative aspect-[4/3] bg-gradient-to-br from-zayko-800 to-zayko-700 overflow-hidden">
                     {image ? (
-                        <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                     ) : (
-                        <div className="text-6xl opacity-50 group-hover:scale-110 transition-transform duration-500">
+                        <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl opacity-40 group-hover:scale-105 transition-transform duration-500">
                             {categoryEmoji}
                         </div>
                     )}
 
-                    {/* Gradient overlay for text legibility */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220]/80 via-transparent to-transparent" />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                    {/* Category badge (top-left) */}
-                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-zayko-500/80 text-zayko-100 backdrop-blur-md border border-white/10">
-                        {category}
-                    </span>
-
-                    {/* Price badge (top-right) */}
-                    <span className="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-sm text-price shadow-lg bg-zayko-900/60 backdrop-blur-md border border-gold-400/30">
+                    {/* Price badge */}
+                    <span className="absolute top-2 right-2 px-2 py-1 rounded-lg text-xs sm:text-sm font-bold text-gold-400 bg-zayko-900/70 backdrop-blur-sm border border-gold-400/20">
                         ₹{price}
                     </span>
 
@@ -96,9 +87,9 @@ export default function MenuCard({ id, name, price, category, available, quantit
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center"
+                                className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center"
                             >
-                                <span className="bg-red-500/90 text-white px-5 py-2 rounded-xl font-bold text-sm rotate-[-3deg] shadow-lg">
+                                <span className="bg-red-500/90 text-white px-4 py-1.5 rounded-xl font-bold text-xs rotate-[-3deg] shadow-lg">
                                     SOLD OUT
                                 </span>
                             </motion.div>
@@ -107,39 +98,39 @@ export default function MenuCard({ id, name, price, category, available, quantit
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
+                <div className="flex flex-col flex-1 p-3 sm:p-4 gap-2">
                     {/* Name */}
-                    <h3 className="font-display font-bold text-[17px] text-white line-clamp-1 tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                    <h3 className="font-display font-bold text-sm sm:text-[15px] text-white line-clamp-1 leading-tight">
                         {name}
                     </h3>
 
-                    {/* Description */}
+                    {/* Description — hide on very small mobile for compact cards */}
                     {description && (
-                        <p className="text-sm text-[#b0bec5] line-clamp-2 leading-relaxed">{description}</p>
+                        <p className="hidden sm:block text-xs text-zayko-400 line-clamp-2 leading-relaxed">{description}</p>
                     )}
 
-                    {/* Badges Row */}
-                    <div className="flex items-center gap-2 flex-wrap">
+                    {/* Badge */}
+                    <div className="flex items-center gap-1.5 flex-wrap mt-auto">
                         {available && quantity > 0 ? (
                             <>
                                 <span
-                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${quantity <= 3
+                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold border ${quantity <= 3
                                         ? "bg-amber-500/15 text-amber-400 border-amber-500/20 low-stock-pulse"
                                         : quantity <= 5
                                             ? "bg-amber-500/10 text-amber-300 border-amber-500/15"
                                             : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                         }`}
                                 >
-                                    {quantity <= 3 ? `🔥 Only ${quantity} left!` : quantity <= 5 ? `⚠️ Only ${quantity} left!` : `✓ ${quantity} left`}
+                                    {quantity <= 3 ? `🔥 ${quantity} left` : quantity <= 5 ? `⚠️ ${quantity} left` : `✓ ${quantity}`}
                                 </span>
                                 {customizations && customizations.length > 0 && (
-                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                        ✨ Customizable
+                                    <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                        ✨ Custom
                                     </span>
                                 )}
                             </>
                         ) : (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/20">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/20">
                                 ✗ Unavailable
                             </span>
                         )}
@@ -152,8 +143,8 @@ export default function MenuCard({ id, name, price, category, available, quantit
                             handleAdd();
                         }}
                         disabled={!available || quantity <= 0}
-                        className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${available && quantity > 0
-                            ? "bg-gradient-to-r from-gold-400 to-gold-500 text-zayko-900 hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:scale-[1.03] active:scale-95"
+                        className={`w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${available && quantity > 0
+                            ? "bg-gradient-to-r from-gold-400 to-gold-500 text-zayko-900 hover:shadow-[0_0_16px_rgba(251,191,36,0.25)] active:scale-[0.97]"
                             : "bg-zayko-700 text-zayko-500 cursor-not-allowed"
                             }`}
                     >
@@ -166,7 +157,7 @@ export default function MenuCard({ id, name, price, category, available, quantit
                         </span>
                     </button>
                 </div>
-            </motion.div>
+            </div>
 
             <CustomizationModal
                 item={{ id, name, price, category, available, quantity, preparationTime, image, description, customizations } as MenuItem}

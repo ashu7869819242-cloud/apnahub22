@@ -82,6 +82,15 @@ service cloud.firestore {
       allow write: if false; // Server-side only via Admin SDK
     }
 
+    // ─── User Demand Plans ──────────────────────────
+    // Read: only the authenticated user can read their own demand plans
+    // Write: DENY — managed via /api/demand-plans (Admin SDK)
+    // Note: Stock Manager dashboard reads ALL plans via Admin SDK (server-side)
+    match /userDemandPlans/{planId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false; // Server-side only via Admin SDK
+    }
+
     // ─── Catch-all ──────────────────────────────────
     // Deny everything else by default
     match /{document=**} {

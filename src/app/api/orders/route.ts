@@ -155,12 +155,14 @@ export async function POST(req: NextRequest) {
 
             // 3.3 Create order document
             const userRollNumber = userDoc.data()?.rollNumber || "";
+            const userPhone = userDoc.data()?.phone || "";
             const orderRef = adminDb.collection("orders").doc();
             transaction.set(orderRef, {
                 orderId,
                 userId,
                 userName: userName || "Unknown",
                 userEmail: userEmail || "Unknown",
+                userPhone,
                 userRollNumber,
                 items,
                 total,
